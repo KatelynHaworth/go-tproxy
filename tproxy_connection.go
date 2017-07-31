@@ -1,3 +1,5 @@
+// +build linux
+
 package tproxy
 
 import (
@@ -7,8 +9,6 @@ import (
 	"strings"
 	"syscall"
 )
-
-// +build linux
 
 // TProxyConn describes a connection
 // accepted by the TProxy listener.
@@ -28,7 +28,7 @@ type TProxyConn struct {
 //
 // When `dontAssumeRemote` is false, the connection will
 // originate from the IP address and port that the client
-// used when making the connection. Otherwise, when false,
+// used when making the connection. Otherwise, when true,
 // the connection will originate from an IP address and port
 // assigned by the Linux kernel that is owned by the
 // operating system

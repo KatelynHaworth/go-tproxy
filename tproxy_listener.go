@@ -1,6 +1,6 @@
-package tproxy
-
 // +build linux
+
+package tproxy
 
 import (
 	"errors"

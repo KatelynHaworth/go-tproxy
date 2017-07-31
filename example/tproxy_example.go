@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
-	"net"
 	"github.com/LiamHaworth/go-tproxy"
 	"io"
+	"log"
+	"net"
 	"sync"
 )
 
@@ -20,7 +20,7 @@ func main() {
 		return
 	}
 
-	log.Println("Listener bound succesfully, now accepting connections")
+	log.Println("Listener bound successfully, now accepting connections")
 	for {
 		conn, err := listener.AcceptTProxy()
 		if err != nil {
@@ -39,7 +39,7 @@ func main() {
 func handleConn(conn *tproxy.TProxyConn) {
 	log.Printf("Accepting connection from %s with destination of %s", conn.RemoteAddr().String(), conn.LocalAddr().String())
 
-	remoteConn, err := conn.DialOriginalDestination()
+	remoteConn, err := conn.DialOriginalDestination(false)
 	if err != nil {
 		log.Printf("Failed to connect to original destination [%s]: %s", conn.LocalAddr().String(), err)
 	} else {
@@ -50,7 +50,7 @@ func handleConn(conn *tproxy.TProxyConn) {
 	var streamWait sync.WaitGroup
 	streamWait.Add(2)
 
-	streamConn := func (dst io.Writer, src io.Reader) {
+	streamConn := func(dst io.Writer, src io.Reader) {
 		io.Copy(dst, src)
 		streamWait.Done()
 	}

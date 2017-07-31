@@ -1,4 +1,4 @@
-Golang TProxy
+Golang TProxy [![GoDoc](https://godoc.org/github.com/LiamHaworth/go-tproxy?status.svg)](https://godoc.org/github.com/LiamHaworth/go-tproxy) [![Go Report Card](https://goreportcard.com/badge/github.com/LiamHaworth/go-tproxy)](https://goreportcard.com/report/github.com/LiamHaworth/go-tproxy)
 =============
 
 Golang TProxy provides an easy to use wrapper for the [Linux Transparent Proxy][1] functionality.
