@@ -22,7 +22,7 @@ func main() {
 
 	log.Println("Listener bound successfully, now accepting connections")
 	for {
-		conn, err := listener.AcceptTProxy()
+		conn, err := listener.Accept()
 		if err != nil {
 			if netErr, ok := err.(net.Error); ok && netErr.Temporary() {
 				log.Printf("Temporary error while accepting connection: %s", netErr)
@@ -36,10 +36,10 @@ func main() {
 	}
 }
 
-func handleConn(conn *tproxy.TProxyConn) {
+func handleConn(conn net.Conn) {
 	log.Printf("Accepting connection from %s with destination of %s", conn.RemoteAddr().String(), conn.LocalAddr().String())
 
-	remoteConn, err := conn.DialOriginalDestination(false)
+	remoteConn, err := conn.(*tproxy.TProxyConn).DialOriginalDestination(false)
 	if err != nil {
 		log.Printf("Failed to connect to original destination [%s]: %s", conn.LocalAddr().String(), err)
 	} else {

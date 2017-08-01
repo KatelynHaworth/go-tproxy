@@ -5,10 +5,78 @@ package tproxy
 import (
 	"fmt"
 	"net"
-	"os"
-	"strings"
 	"syscall"
+	"strings"
+	"os"
+	"strconv"
 )
+
+// TProxyListener describes a TCP Listener
+// with the Linux IP_TRANSPARENT option defined
+// on the listening socket
+type TProxyListener struct {
+	base net.Listener
+}
+
+// Accept waits for and returns
+// the next connection to the listener.
+//
+// This command wraps the AcceptTProxy
+// method of the TProxyListener
+func (listener *TProxyListener) Accept() (net.Conn, error) {
+	return listener.AcceptTProxy()
+}
+
+// AcceptTProxy will accept a TCP connection
+// and wrap it to a TProxy connection to provide
+// TProxy functionality
+func (listener *TProxyListener) AcceptTProxy() (*TProxyConn, error) {
+	tcpConn, err := listener.base.(*net.TCPListener).AcceptTCP()
+	if err != nil {
+		return nil, err
+	}
+
+	return &TProxyConn{TCPConn: tcpConn}, nil
+}
+
+// Addr returns the network address
+// the listener is accepting connections
+// from
+func (listener *TProxyListener) Addr() net.Addr {
+	return listener.base.Addr()
+}
+
+// Close will close the listener from accepting
+// any more connections. Any blocked connections
+// will unblock and close
+func (listener *TProxyListener) Close() error {
+	return listener.base.Close()
+}
+
+// ListenTCP will construct a new TCP listener
+// socket with the Linux IP_TRANSPARENT option
+// set on the underlying socket
+func ListenTCP(network string, laddr *net.TCPAddr) (net.Listener, error) {
+	listener, err := net.ListenTCP(network, laddr)
+	if err != nil {
+		return nil, err
+	}
+
+	fileDescriptorSource, err := listener.File()
+	if err != nil {
+		return nil, &net.OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: fmt.Errorf("get file descriptor: %s", err)}
+	} else {
+		defer fileDescriptorSource.Close()
+	}
+
+	fileDescriptor := int(fileDescriptorSource.Fd())
+	if err = syscall.SetsockoptInt(fileDescriptor, syscall.SOL_IP, syscall.IP_TRANSPARENT, 1); err != nil {
+		syscall.Close(fileDescriptor)
+		return nil, &net.OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: fmt.Errorf("set socket option: IP_TRANSPARENT: %s", err)}
+	}
+
+	return &TProxyListener{listener}, nil
+}
 
 // TProxyConn describes a connection
 // accepted by the TProxy listener.
@@ -33,12 +101,12 @@ type TProxyConn struct {
 // assigned by the Linux kernel that is owned by the
 // operating system
 func (conn *TProxyConn) DialOriginalDestination(dontAssumeRemote bool) (*net.TCPConn, error) {
-	remoteSocketAddress, err := addrToSocketAddr(conn.LocalAddr().(*net.TCPAddr))
+	remoteSocketAddress, err := tcpAddrToSocketAddr(conn.LocalAddr().(*net.TCPAddr))
 	if err != nil {
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("build destination socket address: %s", err)}
 	}
 
-	localSocketAddress, err := addrToSocketAddr(conn.RemoteAddr().(*net.TCPAddr))
+	localSocketAddress, err := tcpAddrToSocketAddr(conn.RemoteAddr().(*net.TCPAddr))
 	if err != nil {
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("build local socket address: %s", err)}
 	}
@@ -82,4 +150,28 @@ func (conn *TProxyConn) DialOriginalDestination(dontAssumeRemote bool) (*net.TCP
 	}
 
 	return remoteConn.(*net.TCPConn), nil
+}
+
+// tcpAddToSockerAddr will convert a TCPAddr
+// into a Sockaddr that may be used when
+// connecting and binding sockets
+func tcpAddrToSocketAddr(addr *net.TCPAddr) (syscall.Sockaddr, error) {
+	switch {
+	case addr.IP.To4() != nil:
+		ip := [4]byte{}
+		copy(ip[:], addr.IP.To4())
+
+		return &syscall.SockaddrInet4{Addr: ip, Port: addr.Port}, nil
+
+	default:
+		ip := [16]byte{}
+		copy(ip[:], addr.IP.To16())
+
+		zoneId, err := strconv.ParseUint(addr.Zone, 10, 32)
+		if err != nil {
+			return nil, err
+		}
+
+		return &syscall.SockaddrInet6{Addr: ip, Port: addr.Port, ZoneId: uint32(zoneId)}, nil
+	}
 }
