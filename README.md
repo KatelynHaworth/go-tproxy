@@ -41,7 +41,7 @@ First make a new chain in the mangle table called `DIVERT` and add a rule to dir
 local socket to the `DIVERT` chain
 ```sh
 iptables -t mangle -N DIVERT
-iptables -t mangle -A PREROUTING -p tcp -m socket -J DIVERT
+iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT
 ```
 
 Then in the `DIVERT` chain add rules to add routing mark of `1` to packets in the `DIVERT` chain and accept the packets
