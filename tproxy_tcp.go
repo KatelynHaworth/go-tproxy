@@ -142,7 +142,10 @@ func (conn *Conn) DialOriginalDestination(dontAssumeRemote bool) (*net.TCPConn, 
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("socket connect: %s", err)}
 	}
 
-	remoteConn, err := net.FileConn(os.NewFile(uintptr(fileDescriptor), fmt.Sprintf("net-tcp-dial-%s", conn.LocalAddr().String())))
+	fdFile := os.NewFile(uintptr(fileDescriptor), fmt.Sprintf("net-tcp-dial-%s", conn.LocalAddr().String()))
+	defer fdFile.Close()
+
+	remoteConn, err := net.FileConn(fdFile)
 	if err != nil {
 		syscall.Close(fileDescriptor)
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("convert file descriptor to connection: %s", err)}
