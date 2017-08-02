@@ -78,7 +78,7 @@ To contribute to this project, please follow this guide:
 TODOs
 =====
 
- [ ] Add support for proxying UDP connections
+ [x] ~~Add support for proxying UDP connections~~
 
 
 
