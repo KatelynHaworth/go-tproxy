@@ -6,6 +6,15 @@ source and destination of the connection then stream data between the source and
 
 This is simply to show a working proof of concept for intercepting internet traffic.
 
+Getting Started
+===============
+
+  1. Start the vagrant virtual machines: `vagrant up`
+  2. Compile the example for linux: `env GOOS="linux" GOARCH="amd64" go build -o tproxy.bin tproxy_example.go`
+  3. Log onto the TProxy router: `vagrant ssh tproxy`
+  4. Start the TProxy example: `sudo /vagrant/tproxy.bin`
+  5. Connect a client machine to the intranet network
+
 Network Topology
 ================
 
