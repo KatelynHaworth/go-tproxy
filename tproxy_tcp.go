@@ -110,7 +110,7 @@ func (conn *Conn) DialOriginalDestination(dontAssumeRemote bool) (*net.TCPConn, 
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("build local socket address: %s", err)}
 	}
 
-	fileDescriptor, err := syscall.Socket(tcpAddrFamily("", conn.LocalAddr().(*net.TCPAddr), conn.RemoteAddr().(*net.TCPAddr)), syscall.SOCK_STREAM, syscall.IPPROTO_TCP)
+	fileDescriptor, err := syscall.Socket(tcpAddrFamily("tcp", conn.LocalAddr().(*net.TCPAddr), conn.RemoteAddr().(*net.TCPAddr)), syscall.SOCK_STREAM, syscall.IPPROTO_TCP)
 	if err != nil {
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("socket open: %s", err)}
 	}
