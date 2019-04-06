@@ -163,9 +163,9 @@ func handleTCPConn(conn net.Conn) {
 	remoteConn, err := conn.(*tproxy.Conn).DialOriginalDestination(false)
 	if err != nil {
 		log.Printf("Failed to connect to original destination [%s]: %s", conn.LocalAddr().String(), err)
-	} else {
-		defer remoteConn.Close()
-	}
+		return
+	} 
+	defer remoteConn.Close()
 
 	var streamWait sync.WaitGroup
 	streamWait.Add(2)
