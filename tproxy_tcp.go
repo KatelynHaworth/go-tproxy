@@ -68,9 +68,7 @@ func ListenTCP(network string, laddr *net.TCPAddr) (net.Listener, error) {
 	}
 	defer fileDescriptorSource.Close()
 
-	fileDescriptor := int(fileDescriptorSource.Fd())
-	if err = syscall.SetsockoptInt(fileDescriptor, syscall.SOL_IP, syscall.IP_TRANSPARENT, 1); err != nil {
-		syscall.Close(fileDescriptor)
+	if err = syscall.SetsockoptInt(int(fileDescriptorSource.Fd()), syscall.SOL_IP, syscall.IP_TRANSPARENT, 1); err != nil {
 		return nil, &net.OpError{Op: "listen", Net: network, Source: nil, Addr: laddr, Err: fmt.Errorf("set socket option: IP_TRANSPARENT: %s", err)}
 	}
 
