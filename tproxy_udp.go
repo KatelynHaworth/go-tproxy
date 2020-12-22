@@ -182,7 +182,7 @@ func udpAddrFamily(net string, laddr, raddr *net.UDPAddr) int {
 	}
 
 	if (laddr == nil || laddr.IP.To4() != nil) &&
-		(raddr == nil || laddr.IP.To4() != nil) {
+		(raddr == nil || raddr.IP.To4() != nil) {
 		return syscall.AF_INET
 	}
 	return syscall.AF_INET6
