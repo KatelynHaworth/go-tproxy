@@ -50,7 +50,7 @@ iptables -t mangle -A DIVERT -j MARK --set-mark 1
 iptables -t mangle -A DIVERT -j ACCEPT
 ```
 
-And add routing rules to direct traffic with mark `1` to the local loopback device so the Linux kernal can pipe the
+And add routing rules to direct traffic with mark `1` to the local loopback device so the Linux kernel can pipe the
 traffic into the existing socket.
 ```sh
 ip rule add fwmark 1 lookup 100
