@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/LiamHaworth/go-tproxy"
+	"github.com/pchaseh/go-tproxy"
 )
 
 var (
@@ -159,12 +159,12 @@ func handleUDPConn(data []byte, srcAddr, dstAddr *net.UDPAddr) {
 func handleTCPConn(conn net.Conn) {
 	log.Printf("Accepting TCP connection from %s with destination of %s", conn.RemoteAddr().String(), conn.LocalAddr().String())
 	defer conn.Close()
-	
+
 	remoteConn, err := conn.(*tproxy.Conn).DialOriginalDestination(false)
 	if err != nil {
 		log.Printf("Failed to connect to original destination [%s]: %s", conn.LocalAddr().String(), err)
 		return
-	} 
+	}
 	defer remoteConn.Close()
 
 	var streamWait sync.WaitGroup

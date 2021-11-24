@@ -124,6 +124,11 @@ func DialUDP(network string, laddr *net.UDPAddr, raddr *net.UDPAddr) (*net.UDPCo
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("set socket option: IP_TRANSPARENT: %s", err)}
 	}
 
+	if err = syscall.SetsockoptInt(fileDescriptor, syscall.SOL_IP, syscall.IP_MTU_DISCOVER, syscall.IP_PMTUDISC_DONT); err != nil {
+		syscall.Close(fileDescriptor)
+		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("set socket option: IP_PMTUDISC_DONT: %s", err)}
+	}
+
 	if err = syscall.Bind(fileDescriptor, localSocketAddress); err != nil {
 		syscall.Close(fileDescriptor)
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("socket bind: %s", err)}
@@ -142,7 +147,7 @@ func DialUDP(network string, laddr *net.UDPAddr, raddr *net.UDPAddr) (*net.UDPCo
 		syscall.Close(fileDescriptor)
 		return nil, &net.OpError{Op: "dial", Err: fmt.Errorf("convert file descriptor to connection: %s", err)}
 	}
-	
+
 	return remoteConn.(*net.UDPConn), nil
 }
 
